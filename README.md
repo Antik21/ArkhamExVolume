@@ -1,4 +1,4 @@
-# ArkhamExVolume
+# ArkhamExBot
 
 This bot is a comprehensive tool for interacting with the **Arkham Exchange**, written in Kotlin. It supports both **console** and **Telegram bot** interfaces, providing an easy way to manage accounts and automate tasks. The bot contains three main features:
 
@@ -38,6 +38,8 @@ Execute the application in your console. Use the interactive menu to select the 
 ---
 
 ### Telegram Bot Version
+
+It may be online @ArkhamExBot
 
 1. **Set Up a Telegram Bot**  
 - Create a new bot using Telegram's [BotFather](https://core.telegram.org/bots#botfather).
