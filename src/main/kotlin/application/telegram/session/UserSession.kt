@@ -57,6 +57,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
         currentAction = null
         inputHandler = null
         account = null
+        runningFlow?.forceStop()
         runningFlow = null
     }
 
@@ -125,6 +126,10 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
             }
 
             ACTION_START_TRADING -> {
+                if(currentAction == UserAction.Volume){
+                    sendMessage("Процесс торговли уже запущен.")
+                    return
+                }
                 currentAction = UserAction.Volume
                 if (account == null) {
                     startInputHandler(AccountInputHandler(bot, chatId))
@@ -148,9 +153,10 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
         }
     }
 
-    fun forceStop(){
-        runningFlow?.forceStop()
+    fun stop(){
+        resetUserData()
         sendMessage(text = "Для повторного запуска используйте команду /start.")
+        onFinish.invoke()
     }
 
     private fun onAccountReceived(account: CredentialAccount) {
@@ -207,6 +213,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
     }
 
     private fun startTrade(account: CredentialAccount, tradeConfig: TradeConfig) {
+        sendMessage("Для остановки торговли используйте команду /stop.")
         buildClient(account) { client ->
             val startVolumeTradeCase = StartVolumeTradeCase(client, logger).also {
                 runningFlow = it
