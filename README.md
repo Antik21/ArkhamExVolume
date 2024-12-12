@@ -39,6 +39,8 @@ Execute the application in your console. Use the interactive menu to select the 
 
 ### Telegram Bot Version
 
+It may be online @ArkhamExBot
+
 1. **Set Up a Telegram Bot**  
 - Create a new bot using Telegram's [BotFather](https://core.telegram.org/bots#botfather).
 - Follow this [guide](https://core.telegram.org/bots/tutorial) for instructions on bot creation.
