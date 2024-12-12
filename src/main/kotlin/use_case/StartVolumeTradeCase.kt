@@ -6,6 +6,7 @@ import com.antik.utils.arkham.request.OrderRequest
 import com.antik.utils.arkham.request.OrderSide
 import com.antik.utils.arkham.request.OrderType
 import com.antik.utils.arkham.response.Balance
+import com.antik.utils.arkham.response.OrderResponse
 import com.antik.utils.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -52,13 +53,14 @@ class StartVolumeTradeCase(
             val buyAmount = calculateBuyAmount(usdtBalance, remainingTradeVolume)
 
             val buySize = getTradeSize(tradeToken, tradingPair, buyAmount)
-            executeOrder(
+            val buyResponse = executeOrder(
                 tradingPair = tradingPair,
                 side = OrderSide.BUY,
                 size = buySize,
                 maxAttempts = 3,
                 delayMillis = 500,
             )
+            totalVolume += buyResponse.getOrderVolume()
 
             delay(calculateRandomDelay(config.waitBeforeSell, config.timeRange) * 1000L)
 
@@ -73,15 +75,15 @@ class StartVolumeTradeCase(
 
             validateTokenBalance(tokenBalance, tradeToken.symbol)
 
-            executeOrder(
+            val sellResponse = executeOrder(
                 tradingPair = tradingPair,
                 side = OrderSide.SELL,
                 size = tokenBalance!!,
                 maxAttempts = 3,
                 delayMillis = 1000,
             )
+            totalVolume += sellResponse.getOrderVolume()
 
-            totalVolume = updateTotalVolume(totalVolume, buyAmount)
             if (totalVolume >= config.maxVolume) {
                 logger.message("Trade completed successfully. Total volume: $totalVolume USD.")
                 return@withContext
@@ -138,8 +140,8 @@ class StartVolumeTradeCase(
         size: Double,
         maxAttempts: Int,
         delayMillis: Long,
-    ) {
-        retryOperation(maxAttempts = maxAttempts, delayMillis = delayMillis) {
+    ): OrderResponse {
+        return retryOperation(maxAttempts = maxAttempts, delayMillis = delayMillis) {
             client.createOrder(
                 OrderRequest(
                     clientOrderId = UUID.randomUUID().toString(),
@@ -153,8 +155,8 @@ class StartVolumeTradeCase(
         } ?: throw Exception("Failed to create `$side` order after $maxAttempts attempts.")
     }
 
-    private fun updateTotalVolume(currentVolume: Double, tradeVolume: Double): Double {
-        return currentVolume + tradeVolume
+    private fun OrderResponse.getOrderVolume(): Double {
+        return size.toDouble() * price.toDouble()
     }
 
     private suspend fun getTradeSize(

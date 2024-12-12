@@ -29,7 +29,7 @@ class TelegramLogger(
 
     private fun logToFile(tag: String, msg: String) {
         val currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-        val logEntry = LOG_TEMPLATE.format(currentDateTime, tag, msg)
+        val logEntry = LOG_TEMPLATE.format(currentDateTime, tag, msg) + "\n"
         val file = File("logs.txt")
         file.appendText(logEntry)
     }
