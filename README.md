@@ -65,6 +65,7 @@ If you find this project helpful and would like to support its development, cons
 [![Buy Me a Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/antiglobalist)
 
 Arbitrum USDT 0x3E92ac8A955c0CcaA3abE350A7097b4e8aAFB5c5
+
 Your support is greatly appreciated!
 
 **Developed by** @deni_rodionov Telegram
