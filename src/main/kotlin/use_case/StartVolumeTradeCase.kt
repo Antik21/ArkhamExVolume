@@ -7,24 +7,36 @@ import com.antik.utils.arkham.request.OrderSide
 import com.antik.utils.arkham.request.OrderType
 import com.antik.utils.arkham.response.Balance
 import com.antik.utils.logger.Logger
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import use_case.FlowCase
 import java.util.*
 
 class StartVolumeTradeCase(
     private val client: ArkmClient,
     private val logger: Logger,
-) {
+) : FlowCase {
+
     private companion object {
         const val MIN_TRADE_AMOUNT = 10.0
     }
 
-    operator fun invoke(config: TradeConfig) = runBlocking {
+    private var totalVolume = 0.0
+    private var pendingStop: Boolean = false
+
+    override fun forceStop() {
+        pendingStop = true
+        logger.message("Торговля остановится в начале или в конце оборота")
+    }
+
+    suspend operator fun invoke(config: TradeConfig) = withContext(Dispatchers.IO) {
         logger.message("Starting trade for tokens: ${config.tokens.joinToString(", ") { it.symbol }}")
 
-        var totalVolume = 0.0
-
         while (true) {
+            if(validateStopRequest()) return@withContext
+
             val tradeToken = config.tokens.random()
             val tradingPair = "${tradeToken.symbol}_USDT"
             logger.message("Starting trade for pair: $tradingPair")
@@ -72,13 +84,22 @@ class StartVolumeTradeCase(
             totalVolume = updateTotalVolume(totalVolume, buyAmount)
             if (totalVolume >= config.maxVolume) {
                 logger.message("Trade completed successfully. Total volume: $totalVolume USD.")
-                return@runBlocking
+                return@withContext
             } else {
                 logger.message("Current total volume: $totalVolume USD.")
             }
 
+            if(validateStopRequest()) return@withContext
+
             delay(calculateRandomDelay(config.waitBetweenCycles, config.timeRange) * 1000L)
         }
+    }
+
+    private fun validateStopRequest() : Boolean {
+        return if(pendingStop){
+            logger.message("Trade was stopped. Total volume: $totalVolume USD.")
+            true
+        } else false
     }
 
     private suspend fun fetchBalances(): List<Balance> {

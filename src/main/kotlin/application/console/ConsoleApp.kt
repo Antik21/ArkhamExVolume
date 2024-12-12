@@ -9,9 +9,14 @@ import com.antik.utils.use_case.StartVolumeTradeCase
 import com.antik.utils.use_case.TradeConfig
 import com.antik.utils.user.CredentialAccount
 import com.antik.utils.user.UserRepository.loadCredentialsFromFile
+import kotlinx.coroutines.*
 import use_case.ShowStatsCase
 import java.util.*
 import kotlin.system.exitProcess
+
+private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { coroutineContext, throwable ->
+    onError(throwable)
+})
 
 fun main() {
     val scanner = Scanner(System.`in`)
@@ -47,10 +52,8 @@ private fun showBalances() {
     accounts.forEach { account ->
         buildClient(account) { client, logger ->
             val showBalanceCase = ShowBalanceCase(client, logger)
-            runCatching {
-                showBalanceCase.invoke()
-            }.onFailure {
-                logger.message("Error fetching balances: ${it.message}")
+            scope.launch {
+                showBalanceCase()
             }
         }
     }
@@ -62,10 +65,8 @@ private fun startTrade(scanner: Scanner) {
     accounts.forEach { account ->
         buildClient(account) { client, logger ->
             val startVolumeTradeCase = StartVolumeTradeCase(client, logger)
-            runCatching {
-                startVolumeTradeCase.invoke(config)
-            }.onFailure {
-                logger.message("Error during trading: ${it.message}")
+            scope.launch {
+                startVolumeTradeCase(config)
             }
         }
     }
@@ -75,10 +76,8 @@ private fun showStats() {
     accounts.forEach { account ->
         buildClient(account) { client, logger ->
             val showStatsCase = ShowStatsCase(client, logger)
-            runCatching {
-                showStatsCase.invoke()
-            }.onFailure {
-                logger.message("Error fetching statistic: ${it.message}")
+            scope.launch {
+                showStatsCase()
             }
         }
     }
@@ -130,6 +129,10 @@ private fun createTradeConfig(scanner: Scanner): TradeConfig {
         maxVolume = maxVolume,
         minBalanceUSD = minBalanceUSD
     )
+}
+
+private fun onError(ex: Throwable) {
+    println("Error: ${ex.message}")
 }
 
 private val accounts: List<CredentialAccount> by lazy {

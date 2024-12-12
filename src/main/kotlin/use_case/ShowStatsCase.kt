@@ -2,11 +2,12 @@ package use_case
 
 import com.antik.utils.arkham.ArkmClient
 import com.antik.utils.logger.Logger
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
-class ShowStatsCase(private val client: ArkmClient, private val logger: Logger) {
+class ShowStatsCase(private val client: ArkmClient, private val logger: Logger) : FlowCase {
 
-    operator fun invoke() = runBlocking {
+    suspend operator fun invoke() = withContext(Dispatchers.IO) {
         val stats = client.getTradingVolumeStats() ?: throw Exception("Failed to fetch volume statistic.")
         val points = client.getPoints() ?: throw Exception("Failed to fetch rank.")
 
@@ -18,4 +19,6 @@ class ShowStatsCase(private val client: ArkmClient, private val logger: Logger) 
         }
         logger.message(statsMessage)
     }
+
+    override fun forceStop() {}
 }

@@ -51,6 +51,7 @@ private fun startSession(bot: Bot, chat: Chat) {
 
 private fun stopSession(chat: Chat) {
     sessions[chat.id]?.forceStop()
+    sessions.remove(chat.id)
 }
 
 private fun handleText(bot: Bot, chat: Chat, text: String) {

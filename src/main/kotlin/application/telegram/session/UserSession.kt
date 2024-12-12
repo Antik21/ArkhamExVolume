@@ -16,6 +16,8 @@ import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.InlineKeyboardMarkup
 import com.github.kotlintelegrambot.entities.ParseMode
 import com.github.kotlintelegrambot.entities.keyboard.InlineKeyboardButton
+import kotlinx.coroutines.*
+import use_case.FlowCase
 import use_case.ShowStatsCase
 
 class UserSession(private val bot: Bot, private val chat: Chat, private val onFinish: () -> Unit) {
@@ -25,6 +27,11 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
     private var currentAction: UserAction? = null
     private var inputHandler: InputTextHandler<*>? = null
     private var account: CredentialAccount? = null
+    private var runningFlow: FlowCase? = null
+
+    private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { coroutineContext, throwable ->
+        onError(throwable)
+    })
 
     init {
         onStart()
@@ -50,6 +57,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
         currentAction = null
         inputHandler = null
         account = null
+        runningFlow = null
     }
 
     fun handleUserInput(input: String) {
@@ -73,7 +81,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
                 }
             }
         } else {
-            bot.sendMessage(chatId = chatId, text = "Неизвестная команда. Начните с /start.")
+            sendMessage(text = "Неизвестная команда. Начните с /start.")
         }
     }
 
@@ -101,6 +109,8 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
             text = "Выберите операцию:",
             replyMarkup = inlineKeyboard
         )
+
+        runningFlow = null
     }
 
     fun handleUserCallback(data: String) {
@@ -139,7 +149,8 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
     }
 
     fun forceStop(){
-
+        runningFlow?.forceStop()
+        sendMessage(text = "Для повторного запуска используйте команду /start.")
     }
 
     private fun onAccountReceived(account: CredentialAccount) {
@@ -184,28 +195,26 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
 
     private fun showBalances(account: CredentialAccount) {
         buildClient(account) { client ->
-            val showBalanceCase = ShowBalanceCase(client, logger)
+            val showBalanceCase = ShowBalanceCase(client, logger).also {
+                runningFlow = it
+            }
 
-            runCatching {
+            scope.launch {
                 showBalanceCase()
                 showActionMenu()
-            }.onFailure {
-                sendMessage("Ошибка при получении балансов: ${it.message})")
-                restart()
             }
         }
     }
 
     private fun startTrade(account: CredentialAccount, tradeConfig: TradeConfig) {
         buildClient(account) { client ->
-            val startVolumeTradeCase = StartVolumeTradeCase(client, logger)
+            val startVolumeTradeCase = StartVolumeTradeCase(client, logger).also {
+                runningFlow = it
+            }
 
-            runCatching {
+            scope.launch {
                 startVolumeTradeCase(tradeConfig)
                 showActionMenu()
-            }.onFailure {
-                sendMessage("Ошибка при в процессе торговли: ${it.message})")
-                restart()
             }
         }
     }
@@ -214,14 +223,16 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
         buildClient(account) { client ->
             val showStatsCase = ShowStatsCase(client, logger)
 
-            runCatching {
+            scope.launch {
                 showStatsCase()
                 showActionMenu()
-            }.onFailure {
-                sendMessage("Ошибка при получении статистики: ${it.message})")
-                restart()
             }
         }
+    }
+
+    private fun onError(ex: Throwable) {
+        sendMessage("Произошла ошибка: ${ex.message})")
+        restart()
     }
 
     private fun restart() {
