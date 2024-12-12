@@ -1,4 +1,4 @@
-# ArkhamExVolume
+# ArkhamExBot
 
 This bot is a comprehensive tool for interacting with the **Arkham Exchange**, written in Kotlin. It supports both **console** and **Telegram bot** interfaces, providing an easy way to manage accounts and automate tasks. The bot contains three main features:
 
