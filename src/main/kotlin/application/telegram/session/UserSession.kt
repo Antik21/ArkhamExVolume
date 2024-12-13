@@ -207,6 +207,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
 
             scope.launch {
                 showBalanceCase()
+                runningFlow = null
                 showActionMenu()
             }
         }
@@ -214,13 +215,15 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
 
     private fun startTrade(account: CredentialAccount, tradeConfig: TradeConfig) {
         sendMessage("Для остановки торговли используйте команду /stop.")
-        buildClient(account) { client ->
-            val startVolumeTradeCase = StartVolumeTradeCase(client, logger).also {
+
+        buildClient(account) { client ->/
+            val startVolumeTradeCase = StartVolumeTradeCase(client, logger).also {,/0,
                 runningFlow = it
             }
 
             scope.launch {
                 startVolumeTradeCase(tradeConfig)
+                runningFlow = null
                 showActionMenu()
             }
         }
@@ -228,10 +231,13 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
 
     private fun showStatistic(account: CredentialAccount) {
         buildClient(account) { client ->
-            val showStatsCase = ShowStatsCase(client, logger)
+            val showStatsCase = ShowStatsCase(client, logger).also {
+                runningFlow = it
+            }
 
             scope.launch {
                 showStatsCase()
+                runningFlow = null
                 showActionMenu()
             }
         }
