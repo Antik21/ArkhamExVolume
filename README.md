@@ -39,7 +39,7 @@ Execute the application in your console. Use the interactive menu to select the 
 
 ### Telegram Bot Version
 
-It may be online [ArkhamExBot](https://t.me/ArkhamExBot) 
+It may be online [ArkhamExBot](https://t.me/ArkhamExBot). Or contact the [developer](https://t.me/deni_rodionov)
 
 1. **Set Up a Telegram Bot**  
 - Create a new bot using Telegram's [BotFather](https://core.telegram.org/bots#botfather).
@@ -70,4 +70,4 @@ Arbitrum USDT 0x3E92ac8A955c0CcaA3abE350A7097b4e8aAFB5c5
 
 Your support is greatly appreciated!
 
-**Developed by** @deni_rodionov Telegram
+**Developed by** [Antiglobalist](https://t.me/deni_rodionov)
