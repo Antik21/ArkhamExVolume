@@ -3,7 +3,7 @@
 This bot is a comprehensive tool for interacting with the **Arkham Exchange**, written in Kotlin. It supports both **console** and **Telegram bot** interfaces, providing an easy way to manage accounts and automate tasks. The bot contains three main features:
 
 1. **View Account Balance**: Check your account's USDT balance and other relevant details.
-2. **Generate Spot Trading Volume**: Automate trading to generate a desired trading volume.
+2. **Generate Spot % Perp Trading Volume**: Automate trading to generate a desired trading volume.
 3. **View Account Statistics**: Fetch detailed statistics for your account activity.
 
 ---
@@ -13,8 +13,8 @@ This bot is a comprehensive tool for interacting with the **Arkham Exchange**, w
 ### 1. View Account Balance
 Retrieve your account balance details, including USDT and other supported tokens.
 
-### 2. Generate Spot Trading Volume
-Automatically execute trades on spot markets to increase trading volume, useful for meeting exchange requirements.
+### 2. Generate Trading Volume
+Automatically execute trades on spot & perp markets(It depends on leverage) to increase trading volume, useful for meeting exchange requirements.
 
 ### 3. View Account Statistics
 Fetch and display account-level statistics such as total trading volume and fees incurred.
