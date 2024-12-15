@@ -13,6 +13,7 @@ import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 private const val BASE_PATH = "/api"
+private const val USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
 fun createOkHttpClient(user: CredentialAccount): OkHttpClient {
     val apiAuthInterceptor = createApiAuthInterceptor(user)
@@ -53,6 +54,7 @@ private fun createApiAuthInterceptor(user: CredentialAccount): Interceptor {
         val newRequestBuilder = originalRequest.newBuilder()
             .header("Content-Type", "application/json")
             .header("Accept", "application/json")
+            .header("User-Agent", USER_AGENT)
 
         if (!originalRequest.isUnauthorizedCall()) {
             val method = originalRequest.method
