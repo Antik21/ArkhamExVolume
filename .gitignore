@@ -44,3 +44,7 @@ bin/
 ### Mac OS ###
 .DS_Store
 .idea/
+local.properties
+accounts.txt
+logs.txt
+users.txt

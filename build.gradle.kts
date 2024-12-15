@@ -1,18 +1,35 @@
 plugins {
     kotlin("jvm") version "2.0.20"
+    id("com.gradleup.shadow") version "9.0.0-beta4"
     application
 }
 
 application {
-    mainClass.set("application.console.ConsoleAppKt")
+    mainClass.set("application.telegram.TelegramAppKt")
 }
 
 group = "com.antik.arkham"
-version = "0.1"
+version = "1"
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
     maven { url = uri("https://jitpack.io") }
+}
+
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath("com.gradleup.shadow:shadow-gradle-plugin:9.0.0-beta4")
+    }
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "application.telegram.TelegramAppKt"
+    }
 }
 
 dependencies {
@@ -37,41 +54,7 @@ kotlin {
     jvmToolchain(17)
 }
 
-tasks.register<Jar>("fatJar") {
+tasks.shadowJar {
     archiveClassifier.set("all")
-    from(sourceSets.main.get().output)
-
-    dependsOn(configurations.runtimeClasspath)
-    val runtimeClasspath = configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }
-    from(runtimeClasspath)
-
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    manifest {
-        attributes["Main-Class"] = "application.console.ConsoleAppKt"
-    }
-}
-
-tasks.register<Exec>("createExe") {
-    dependsOn("fatJar")
-
-    val outputDir = layout.buildDirectory.dir("exe").get().asFile
-    val jarTask = tasks.named("fatJar", Jar::class).get()
-    val jarFile = jarTask.archiveFile.get().asFile
-    val jdkPath = System.getenv("JAVA_HOME") ?: throw GradleException("JAVA_HOME is not set")
-
-    doFirst {
-        if (!outputDir.exists()) outputDir.mkdirs()
-    }
-
-    commandLine(
-        "$jdkPath\\bin\\jpackage",
-        "--type", "exe",
-        "--input", jarFile.parent,
-        "--dest", outputDir,
-        "--name", project.name,
-        "--main-jar", jarFile.name,
-        "--main-class", "application.console.ConsoleAppKt"
-    )
 }
 
