@@ -54,18 +54,7 @@ kotlin {
     jvmToolchain(17)
 }
 
-tasks.register<Jar>("fatJar") {
+tasks.shadowJar {
     archiveClassifier.set("all")
-    from(sourceSets.main.get().output)
-
-    dependsOn(configurations.runtimeClasspath)
-    val runtimeClasspath = configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) }
-    from(runtimeClasspath)
-
-    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-
-    manifest {
-        attributes["Main-Class"] = "application.telegram.TelegramAppKt"
-    }
 }
 
