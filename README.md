@@ -62,6 +62,12 @@ Start the bot, and interact with it using the following commands:
    - Start trading volume generation.
    - View account statistics.
 
+#### Screenshots 
+![image](https://github.com/user-attachments/assets/e07db3bb-5fd6-4819-8321-0775015b934c)
+![image](https://github.com/user-attachments/assets/f92281a6-f855-4231-b3b6-87b6066f3f6c)
+![image](https://github.com/user-attachments/assets/99bf4dea-e81b-4d35-a7a6-d9b0498f1be0)
+
+
 ## Donations
 If you find this project helpful and would like to support its development, consider making a donation:
 [![Buy Me a Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/antiglobalist)
