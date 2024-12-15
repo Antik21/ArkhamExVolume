@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.0.20"
+    id("com.gradleup.shadow") version "9.0.0-beta4"
     application
 }
 
@@ -12,7 +13,23 @@ version = "1"
 
 repositories {
     mavenCentral()
+    gradlePluginPortal()
     maven { url = uri("https://jitpack.io") }
+}
+
+buildscript {
+    repositories {
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath("com.gradleup.shadow:shadow-gradle-plugin:9.0.0-beta4")
+    }
+}
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "application.telegram.TelegramAppKt"
+    }
 }
 
 dependencies {
