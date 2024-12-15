@@ -115,6 +115,8 @@ private fun createTradeConfig(scanner: Scanner): TradeConfig {
         setOf(Token.Bitcoin)
     }
 
+    val leverage = prompt("Enter leverage (1 for Spot, 2-10 for Perp trading)", "1").toIntOrNull()
+        ?.coerceIn(1, 10) ?: 1
     val waitBeforeSell = prompt("Enter wait time before selling in seconds", "10").toIntOrNull() ?: 10
     val waitBetweenCycles = prompt("Enter wait time between buy/sell cycles in seconds", "30").toIntOrNull() ?: 30
     val timeRange = prompt("Enter time range for random intervals in seconds", "5").toIntOrNull() ?: 5
@@ -123,6 +125,7 @@ private fun createTradeConfig(scanner: Scanner): TradeConfig {
 
     return TradeConfig(
         tokens = selectedTokens,
+        leverage = leverage,
         waitBeforeSell = waitBeforeSell,
         waitBetweenCycles = waitBetweenCycles,
         timeRange = timeRange,

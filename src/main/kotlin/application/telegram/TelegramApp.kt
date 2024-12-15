@@ -9,8 +9,8 @@ import com.github.kotlintelegrambot.dispatch
 import com.github.kotlintelegrambot.dispatcher.callbackQuery
 import com.github.kotlintelegrambot.dispatcher.command
 import com.github.kotlintelegrambot.dispatcher.text
-import com.github.kotlintelegrambot.entities.CallbackQuery
-import com.github.kotlintelegrambot.entities.Chat
+import com.github.kotlintelegrambot.entities.*
+import com.github.kotlintelegrambot.entities.keyboard.KeyboardButton
 
 private val sessions = mutableMapOf<Long, UserSession>()
 
@@ -43,14 +43,16 @@ fun main() {
 }
 
 private fun startSession(bot: Bot, chat: Chat) {
-    sessions[chat.id] = UserSession(bot, chat) {
-        sessions.remove(chat.id)
-    }
+    sessions[chat.id] = UserSession(bot, chat, ::onSessionFinished)
     logUserToFile(chat)
 }
 
 private fun stopSession(chat: Chat) {
-    sessions[chat.id]?.stop()
+    sessions[chat.id]?.requestStop()
+}
+
+private fun onSessionFinished(chat: Chat) {
+    sessions.remove(chat.id)
 }
 
 private fun handleText(bot: Bot, chat: Chat, text: String) {

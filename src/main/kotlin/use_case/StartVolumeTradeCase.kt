@@ -10,7 +10,6 @@ import com.antik.utils.arkham.response.OrderResponse
 import com.antik.utils.logger.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import use_case.FlowCase
 import java.util.*
@@ -36,10 +35,10 @@ class StartVolumeTradeCase(
         logger.message("Starting trade for tokens: ${config.tokens.joinToString(", ") { it.symbol }}")
 
         while (true) {
-            if(validateStopRequest()) return@withContext
+            if (validateStopRequest()) return@withContext
 
             val tradeToken = config.tokens.random()
-            val tradingPair = "${tradeToken.symbol}_USDT"
+            val tradingPair = getTradingPair(tradeToken, config.leverage)
             logger.message("Starting trade for pair: $tradingPair")
 
             val balances = fetchBalances()
@@ -50,7 +49,7 @@ class StartVolumeTradeCase(
             validateUSDTBalance(usdtBalance)
 
             val remainingTradeVolume = (config.maxVolume - totalVolume) / 1.93
-            val buyAmount = calculateBuyAmount(usdtBalance, remainingTradeVolume)
+            val buyAmount = calculateBuyAmount(usdtBalance, remainingTradeVolume, config.leverage)
 
             val buySize = getTradeSize(tradeToken, tradingPair, buyAmount)
             val buyResponse = executeOrder(
@@ -60,25 +59,23 @@ class StartVolumeTradeCase(
                 maxAttempts = 3,
                 delayMillis = 500,
             )
+            val boughtSize = buyResponse.size.toDouble()
             totalVolume += buyResponse.getOrderVolume()
 
             delay(calculateRandomDelay(config.waitBeforeSell, config.timeRange) * 1000L)
 
-            val updatedBalances = fetchBalances()
-
-            val tokenBalance = updatedBalances.find { it.symbol == tradeToken.symbol }?.free?.toDoubleOrNull()
-                ?.let { balance ->
-                    val roundingStep = tradeToken.roundingStep
-                    val roundedBalance = balance - (balance % roundingStep)
-                    roundedBalance.coerceAtLeast(0.0)
-                }
+            val tokenBalance = if(config.leverage == 1) boughtSize.let { size ->
+                val roundingStep = tradeToken.roundingStep
+                val roundedBalance = size - (size % roundingStep)
+                roundedBalance.coerceAtLeast(0.0)
+            } else boughtSize
 
             validateTokenBalance(tokenBalance, tradeToken.symbol)
 
             val sellResponse = executeOrder(
                 tradingPair = tradingPair,
                 side = OrderSide.SELL,
-                size = tokenBalance!!,
+                size = tokenBalance,
                 maxAttempts = 3,
                 delayMillis = 1000,
             )
@@ -91,14 +88,18 @@ class StartVolumeTradeCase(
                 logger.message("Current total volume: $totalVolume USD.")
             }
 
-            if(validateStopRequest()) return@withContext
+            if (validateStopRequest()) return@withContext
 
             delay(calculateRandomDelay(config.waitBetweenCycles, config.timeRange) * 1000L)
         }
     }
 
-    private fun validateStopRequest() : Boolean {
-        return if(pendingStop){
+    private fun getTradingPair(token: Token, leverage: Int): String {
+        return if (leverage > 1) "${token.symbol}_USDT_PERP" else "${token.symbol}_USDT"
+    }
+
+    private fun validateStopRequest(): Boolean {
+        return if (pendingStop) {
             logger.message("Trade was stopped. Total volume: $totalVolume USD.")
             true
         } else false
@@ -122,8 +123,9 @@ class StartVolumeTradeCase(
         }
     }
 
-    private fun calculateBuyAmount(usdtBalance: Double?, remainingTradeVolume: Double): Double {
-        return minOf(remainingTradeVolume, usdtBalance ?: 0.0).takeIf {
+    private fun calculateBuyAmount(usdtBalance: Double?, remainingTradeVolume: Double, leverage: Int): Double {
+        val leveragedBalance = (usdtBalance ?: 0.0) * leverage
+        return minOf(remainingTradeVolume, leveragedBalance).takeIf {
             it >= MIN_TRADE_AMOUNT
         } ?: MIN_TRADE_AMOUNT
     }

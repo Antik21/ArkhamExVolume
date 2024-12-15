@@ -20,7 +20,7 @@ import kotlinx.coroutines.*
 import use_case.FlowCase
 import use_case.ShowStatsCase
 
-class UserSession(private val bot: Bot, private val chat: Chat, private val onFinish: () -> Unit) {
+class UserSession(private val bot: Bot, private val chat: Chat, private val onFinish: (Chat) -> Unit) {
 
     private val chatId = ChatId.fromId(chat.id)
     private val logger = TelegramLogger(bot, chatId)
@@ -153,10 +153,10 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
         }
     }
 
-    fun stop(){
+    fun requestStop(){
         resetUserData()
         sendMessage(text = "Для повторного запуска используйте команду /start.")
-        onFinish.invoke()
+        onFinish.invoke(chat)
     }
 
     private fun onAccountReceived(account: CredentialAccount) {
@@ -216,8 +216,8 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
     private fun startTrade(account: CredentialAccount, tradeConfig: TradeConfig) {
         sendMessage("Для остановки торговли используйте команду /stop.")
 
-        buildClient(account) { client ->/
-            val startVolumeTradeCase = StartVolumeTradeCase(client, logger).also {,/0,
+        buildClient(account) { client ->
+            val startVolumeTradeCase = StartVolumeTradeCase(client, logger).also {
                 runningFlow = it
             }
 
@@ -259,7 +259,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
     private fun exit() {
         resetUserData()
         sendMessage("Спасибо за использование! До свидания!")
-        onFinish.invoke()
+        onFinish(chat)
     }
 
     private inline fun buildClient(account: CredentialAccount, action: (ArkmClient) -> Unit) {

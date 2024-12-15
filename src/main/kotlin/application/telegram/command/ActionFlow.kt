@@ -1,4 +1,4 @@
-package application.telegram.flow
+package application.telegram.command
 
 interface ActionFlow {
     fun getStartMessage() : String

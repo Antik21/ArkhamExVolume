@@ -4,6 +4,7 @@ import arkham.token.Token
 
 data class TradeConfig(
     val tokens: Set<Token>,
+    val leverage: Int = 1,
     val waitBeforeSell: Int,
     val waitBetweenCycles: Int,
     val timeRange: Int,

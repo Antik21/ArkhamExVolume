@@ -9,6 +9,7 @@ class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) 
 
     private enum class TradeConfigStep {
         TOKENS,
+        LEVERAGE,
         WAIT_BEFORE_SELL,
         WAIT_BETWEEN_CYCLES,
         TIME_RANGE,
@@ -52,6 +53,11 @@ class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) 
                     setOf(Token.Bitcoin)
                 }
 
+                step = TradeConfigStep.LEVERAGE
+            }
+
+            TradeConfigStep.LEVERAGE -> {
+                configData["leverage"] = input.toIntOrNull()?.coerceIn(1, 10) ?: 1
                 step = TradeConfigStep.WAIT_BEFORE_SELL
             }
 
@@ -97,6 +103,7 @@ class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) 
         return if (isComplete()) {
             TradeConfig(
                 tokens = configData["tokens"] as Set<Token>,
+                leverage = configData["leverage"] as Int,
                 waitBeforeSell = configData["waitBeforeSell"] as Int,
                 waitBetweenCycles = configData["waitBetweenCycles"] as Int,
                 timeRange = configData["timeRange"] as Int,
@@ -109,6 +116,7 @@ class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) 
     private fun TradeConfigStep.message(): String {
         return when (this) {
             TradeConfigStep.TOKENS -> "Введите список монет для торговли через запятую (например: BTC, ETH):"
+            TradeConfigStep.LEVERAGE -> "Введите торговое плечо (1 для Спота, 2-10 для Perp торговли, по умолчанию: 1)"
             TradeConfigStep.WAIT_BEFORE_SELL -> "Введите время ожидания перед продажей (в секундах, по умолчанию: 10):"
             TradeConfigStep.WAIT_BETWEEN_CYCLES -> "Введите время ожидания между циклами (в секундах, по умолчанию: 30):"
             TradeConfigStep.TIME_RANGE -> "Введите диапазон в секундах для случайных интервалов (по умолчанию: 5):"

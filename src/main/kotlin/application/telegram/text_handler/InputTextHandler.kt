@@ -1,6 +1,6 @@
 package application.telegram.text_handler
 
-import application.telegram.flow.ActionFlow
+import application.telegram.command.ActionFlow
 
 interface InputTextHandler<T> : ActionFlow {
     fun handleInput(input: String)
