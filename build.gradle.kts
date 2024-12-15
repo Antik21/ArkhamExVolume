@@ -4,11 +4,11 @@ plugins {
 }
 
 application {
-    mainClass.set("application.console.ConsoleAppKt")
+    mainClass.set("application.telegram.TelegramAppKt")
 }
 
 group = "com.antik.arkham"
-version = "0.1"
+version = "1"
 
 repositories {
     mavenCentral()
@@ -48,30 +48,7 @@ tasks.register<Jar>("fatJar") {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
-        attributes["Main-Class"] = "application.console.ConsoleAppKt"
+        attributes["Main-Class"] = "application.telegram.TelegramAppKt"
     }
-}
-
-tasks.register<Exec>("createExe") {
-    dependsOn("fatJar")
-
-    val outputDir = layout.buildDirectory.dir("exe").get().asFile
-    val jarTask = tasks.named("fatJar", Jar::class).get()
-    val jarFile = jarTask.archiveFile.get().asFile
-    val jdkPath = System.getenv("JAVA_HOME") ?: throw GradleException("JAVA_HOME is not set")
-
-    doFirst {
-        if (!outputDir.exists()) outputDir.mkdirs()
-    }
-
-    commandLine(
-        "$jdkPath\\bin\\jpackage",
-        "--type", "exe",
-        "--input", jarFile.parent,
-        "--dest", outputDir,
-        "--name", project.name,
-        "--main-jar", jarFile.name,
-        "--main-class", "application.console.ConsoleAppKt"
-    )
 }
 

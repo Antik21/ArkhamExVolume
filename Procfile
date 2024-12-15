@@ -1,0 +1,1 @@
+worker: java -jar build/libs/ArkhamVolume-1.jar
