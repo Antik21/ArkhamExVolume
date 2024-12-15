@@ -3,7 +3,7 @@
 This bot is a comprehensive tool for interacting with the **Arkham Exchange**, written in Kotlin. It supports both **console** and **Telegram bot** interfaces, providing an easy way to manage accounts and automate tasks. The bot contains three main features:
 
 1. **View Account Balance**: Check your account's USDT balance and other relevant details.
-2. **Generate Spot Trading Volume**: Automate trading to generate a desired trading volume.
+2. **Generate Spot & Perp Trading Volume**: Automate trading to generate a desired trading volume.
 3. **View Account Statistics**: Fetch detailed statistics for your account activity.
 
 ---
@@ -13,8 +13,8 @@ This bot is a comprehensive tool for interacting with the **Arkham Exchange**, w
 ### 1. View Account Balance
 Retrieve your account balance details, including USDT and other supported tokens.
 
-### 2. Generate Spot Trading Volume
-Automatically execute trades on spot markets to increase trading volume, useful for meeting exchange requirements.
+### 2. Generate Trading Volume
+Automatically execute trades on spot & perp markets(It depends on leverage) to increase trading volume, useful for meeting exchange requirements.
 
 ### 3. View Account Statistics
 Fetch and display account-level statistics such as total trading volume and fees incurred.
@@ -39,7 +39,7 @@ Execute the application in your console. Use the interactive menu to select the 
 
 ### Telegram Bot Version
 
-It may be online @ArkhamExBot
+It may be online [ArkhamExBot](https://t.me/ArkhamExBot). Or contact the [developer](https://t.me/deni_rodionov)
 
 1. **Set Up a Telegram Bot**  
 - Create a new bot using Telegram's [BotFather](https://core.telegram.org/bots#botfather).
@@ -62,6 +62,12 @@ Start the bot, and interact with it using the following commands:
    - Start trading volume generation.
    - View account statistics.
 
+#### Screenshots 
+![image](https://github.com/user-attachments/assets/e07db3bb-5fd6-4819-8321-0775015b934c)
+![image](https://github.com/user-attachments/assets/f92281a6-f855-4231-b3b6-87b6066f3f6c)
+![image](https://github.com/user-attachments/assets/99bf4dea-e81b-4d35-a7a6-d9b0498f1be0)
+
+
 ## Donations
 If you find this project helpful and would like to support its development, consider making a donation:
 [![Buy Me a Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/antiglobalist)
@@ -70,4 +76,4 @@ Arbitrum USDT 0x3E92ac8A955c0CcaA3abE350A7097b4e8aAFB5c5
 
 Your support is greatly appreciated!
 
-**Developed by** @deni_rodionov Telegram
+**Developed by** [Antiglobalist](https://t.me/deni_rodionov)
