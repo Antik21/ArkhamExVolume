@@ -4,8 +4,10 @@ import arkham.token.Token
 import com.antik.utils.use_case.TradeConfig
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.ChatId
+import generated.StringKey
+import localization.LocalizationManager
 
-class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) : InputTextHandler<TradeConfig> {
+class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId, private val localizationManager: LocalizationManager) : InputTextHandler<TradeConfig> {
 
     private enum class TradeConfigStep {
         TOKENS,
@@ -23,20 +25,19 @@ class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) 
 
     override fun getStartMessage(): String {
         return buildString {
-            appendLine("Укажите конфигурацию для трейдинга.")
-            appendLine("Поддерживаемые монеты: ${Token.entries.joinToString(", ") { it.symbol }}")
-            append(TradeConfigStep.TOKENS.message())
+            appendLine(localizationManager.getString(StringKey.TRADE_CONFIG_TITLE))
+            appendLine(localizationManager.getString(StringKey.TRADE_SUPPORTED_TOKENS, Token.entries.joinToString(", ") { it.symbol }))
+            append(step.message())
         }
     }
 
     override fun getCompleteMessage(): String {
-        return "Конфигурация успешно создана!"
+        return localizationManager.getString(StringKey.TRADE_CONFIG_CREATED)
     }
 
     override fun handleInput(input: String) {
         when (step) {
             TradeConfigStep.TOKENS -> {
-
                 val tokens = input.split(",")
                     .map { it.trim().uppercase() }
                     .mapNotNull { symbol ->
@@ -49,10 +50,12 @@ class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) 
                     .toSet()
 
                 configData["tokens"] = tokens.ifEmpty {
-                    bot.sendMessage(chatId = chatId, text = "Некорректные данные. Используется BTC по умолчанию.")
+                    bot.sendMessage(
+                        chatId = chatId,
+                        text = localizationManager.getString(StringKey.TRADE_CONFIG_INVALID_TOKENS)
+                    )
                     setOf(Token.Bitcoin)
                 }
-
                 step = TradeConfigStep.LEVERAGE
             }
 
@@ -87,9 +90,8 @@ class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) 
             }
 
             TradeConfigStep.COMPLETE -> {
-                bot.sendMessage(chatId = chatId, text = "Все данные уже заполнены.")
+                bot.sendMessage(chatId = chatId, text = localizationManager.getString(StringKey.TRADE_CONFIG_COMPLETE))
             }
-
         }
     }
 
@@ -115,14 +117,14 @@ class TradeConfigInputHandler(private val bot: Bot, private val chatId: ChatId) 
 
     private fun TradeConfigStep.message(): String {
         return when (this) {
-            TradeConfigStep.TOKENS -> "Введите список монет для торговли через запятую (например: BTC, ETH):"
-            TradeConfigStep.LEVERAGE -> "Введите торговое плечо (1 для Спота, 2-10 для Perp торговли, по умолчанию: 1)"
-            TradeConfigStep.WAIT_BEFORE_SELL -> "Введите время ожидания перед продажей (в секундах, по умолчанию: 10):"
-            TradeConfigStep.WAIT_BETWEEN_CYCLES -> "Введите время ожидания между циклами (в секундах, по умолчанию: 30):"
-            TradeConfigStep.TIME_RANGE -> "Введите диапазон в секундах для случайных интервалов (по умолчанию: 5):"
-            TradeConfigStep.MAX_VOLUME -> "Введите максимальный объем (в USD, по умолчанию: 1000):"
-            TradeConfigStep.MIN_BALANCE_USD -> "Введите минимальный баланс (в USD, по умолчанию: 50):"
-            TradeConfigStep.COMPLETE -> "Все данные уже заполнены."
+            TradeConfigStep.TOKENS -> localizationManager.getString(StringKey.TRADE_CONFIG_TOKENS)
+            TradeConfigStep.LEVERAGE -> localizationManager.getString(StringKey.TRADE_CONFIG_LEVERAGE)
+            TradeConfigStep.WAIT_BEFORE_SELL -> localizationManager.getString(StringKey.TRADE_CONFIG_WAIT_BEFORE_SELL)
+            TradeConfigStep.WAIT_BETWEEN_CYCLES -> localizationManager.getString(StringKey.TRADE_CONFIG_WAIT_BETWEEN_CYCLES)
+            TradeConfigStep.TIME_RANGE -> localizationManager.getString(StringKey.TRADE_CONFIG_TIME_RANGE)
+            TradeConfigStep.MAX_VOLUME -> localizationManager.getString(StringKey.TRADE_CONFIG_MAX_VOLUME)
+            TradeConfigStep.MIN_BALANCE_USD -> localizationManager.getString(StringKey.TRADE_CONFIG_MIN_BALANCE_USD)
+            TradeConfigStep.COMPLETE -> localizationManager.getString(StringKey.TRADE_CONFIG_COMPLETE)
         }
     }
 }
