@@ -3,6 +3,7 @@ package application.telegram.session
 import application.telegram.TelegramLogger
 import application.telegram.text_handler.AccountInputHandler
 import application.telegram.text_handler.InputTextHandler
+import application.telegram.text_handler.LanguageSelectionHandler
 import application.telegram.text_handler.TradeConfigInputHandler
 import com.antik.utils.arkham.ArkmClient
 import com.antik.utils.arkham.createOkHttpClient
@@ -16,7 +17,12 @@ import com.github.kotlintelegrambot.entities.ChatId
 import com.github.kotlintelegrambot.entities.InlineKeyboardMarkup
 import com.github.kotlintelegrambot.entities.ParseMode
 import com.github.kotlintelegrambot.entities.keyboard.InlineKeyboardButton
-import kotlinx.coroutines.*
+import generated.StringKey
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import localization.LocalizationManager
 import use_case.FlowCase
 import use_case.ShowStatsCase
 
@@ -24,17 +30,23 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
 
     private val chatId = ChatId.fromId(chat.id)
     private val logger = TelegramLogger(bot, chatId)
+    private lateinit var localizationManager: LocalizationManager
+    private val languageHandler = LanguageSelectionHandler(bot, chatId)
     private var currentAction: UserAction? = null
     private var inputHandler: InputTextHandler<*>? = null
     private var account: CredentialAccount? = null
     private var runningFlow: FlowCase? = null
 
-    private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { coroutineContext, throwable ->
+    private val scope = CoroutineScope(Dispatchers.Default + CoroutineExceptionHandler { _, throwable ->
         onError(throwable)
     })
 
     init {
-        onStart()
+        selectLanguage()
+    }
+
+    private fun selectLanguage() {
+        languageHandler.showLanguageMenu()
     }
 
     private fun sendMessage(text: String) {
@@ -47,7 +59,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
 
     private fun onStart() {
         if (currentAction == null) {
-            sendMessage("Привет ${chat.firstName}")
+            sendMessage(localizationManager.getString(StringKey.WELCOME_MESSAGE, chat.firstName))
         }
         resetUserData()
         showActionMenu()
@@ -81,8 +93,6 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
                     sendMessage(it)
                 }
             }
-        } else {
-            sendMessage(text = "Неизвестная команда. Начните с /start.")
         }
     }
 
@@ -98,41 +108,57 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
     private fun showActionMenu() {
         val inlineKeyboard = InlineKeyboardMarkup.create(
             listOf(
-                InlineKeyboardButton.CallbackData(text = "Баланс", callbackData = ACTION_SHOW_BALANCE),
-                InlineKeyboardButton.CallbackData(text = "Торговля", callbackData = ACTION_START_TRADING),
-                InlineKeyboardButton.CallbackData(text = "Статистика", callbackData = ACTION_STATS),
-                InlineKeyboardButton.CallbackData(text = "Выход", callbackData = ACTION_EXIT)
+                InlineKeyboardButton.CallbackData(
+                    text = localizationManager.getString(StringKey.MENU_ACTION_BALANCE),
+                    callbackData = ACTION_SHOW_BALANCE
+                ),
+                InlineKeyboardButton.CallbackData(
+                    text = localizationManager.getString(StringKey.MENU_ACTION_TRADE),
+                    callbackData = ACTION_START_TRADING
+                ),
+                InlineKeyboardButton.CallbackData(
+                    text = localizationManager.getString(StringKey.MENU_ACTION_STATS),
+                    callbackData = ACTION_STATS
+                ),
+                InlineKeyboardButton.CallbackData(
+                    text = localizationManager.getString(StringKey.MENU_ACTION_EXIT),
+                    callbackData = ACTION_EXIT
+                )
             )
         )
 
         bot.sendMessage(
             chatId = chatId,
-            text = "Выберите операцию:",
+            text = localizationManager.getString(StringKey.MENU_TITLE),
             replyMarkup = inlineKeyboard
         )
-
-        runningFlow = null
     }
 
     fun handleUserCallback(data: String) {
+        if (languageHandler.handleLanguageSelection(data)) {
+            localizationManager = languageHandler.selectedLanguage!!
+            onStart()
+            return
+        }
+
         when (data) {
             ACTION_SHOW_BALANCE -> {
                 currentAction = UserAction.Balance
                 if (account == null) {
-                    startInputHandler(AccountInputHandler(bot, chatId))
+                    startInputHandler(AccountInputHandler(bot, chatId, localizationManager))
                 } else {
                     onAccountReceived(account!!)
                 }
             }
 
             ACTION_START_TRADING -> {
-                if(currentAction == UserAction.Volume){
-                    sendMessage("Процесс торговли уже запущен.")
+                if (currentAction == UserAction.Volume) {
+                    sendMessage(localizationManager.getString(StringKey.TRADE_IS_ACTIVE_WARNING))
                     return
                 }
                 currentAction = UserAction.Volume
                 if (account == null) {
-                    startInputHandler(AccountInputHandler(bot, chatId))
+                    startInputHandler(AccountInputHandler(bot, chatId, localizationManager))
                 } else {
                     onAccountReceived(account!!)
                 }
@@ -141,7 +167,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
             ACTION_STATS -> {
                 currentAction = UserAction.Stats
                 if (account == null) {
-                    startInputHandler(AccountInputHandler(bot, chatId))
+                    startInputHandler(AccountInputHandler(bot, chatId, localizationManager))
                 } else {
                     onAccountReceived(account!!)
                 }
@@ -153,9 +179,9 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
         }
     }
 
-    fun requestStop(){
+    fun requestStop() {
         resetUserData()
-        sendMessage(text = "Для повторного запуска используйте команду /start.")
+        sendMessage(localizationManager.getString(StringKey.EXECUTE_AGAIN_MESSAGE))
         onFinish.invoke(chat)
     }
 
@@ -163,48 +189,29 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
         this.account = account
         finishUserInput()
         when (currentAction) {
-            UserAction.Balance -> {
-                showBalances(account)
-            }
-
-            UserAction.Volume -> {
-                startInputHandler(TradeConfigInputHandler(bot, chatId))
-            }
-
-            UserAction.Stats -> {
-                showStatistic(account)
-            }
-
-            else -> {
-                restart()
-            }
+            UserAction.Balance -> showBalances(account)
+            UserAction.Volume -> startInputHandler(TradeConfigInputHandler(bot, chatId, localizationManager))
+            UserAction.Stats -> showStatistic(account)
+            else -> restart()
         }
     }
 
     private fun onTradeConfigReceived(config: TradeConfig) {
         finishUserInput()
-        when (currentAction) {
-            UserAction.Volume -> {
-                val currentAccount = account
-                if (currentAccount == null) {
-                    restart()
-                    return
-                }
-                startTrade(currentAccount, config)
-            }
-
-            else -> {
+        if (currentAction == UserAction.Volume) {
+            val currentAccount = account ?: run {
                 restart()
+                return
             }
+            startTrade(currentAccount, config)
+        } else {
+            restart()
         }
     }
 
     private fun showBalances(account: CredentialAccount) {
         buildClient(account) { client ->
-            val showBalanceCase = ShowBalanceCase(client, logger).also {
-                runningFlow = it
-            }
-
+            val showBalanceCase = ShowBalanceCase(client, logger).also { runningFlow = it }
             scope.launch {
                 showBalanceCase()
                 runningFlow = null
@@ -214,13 +221,9 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
     }
 
     private fun startTrade(account: CredentialAccount, tradeConfig: TradeConfig) {
-        sendMessage("Для остановки торговли используйте команду /stop.")
-
+        sendMessage(localizationManager.getString(StringKey.TRADE_STOP_HINT))
         buildClient(account) { client ->
-            val startVolumeTradeCase = StartVolumeTradeCase(client, logger).also {
-                runningFlow = it
-            }
-
+            val startVolumeTradeCase = StartVolumeTradeCase(client, logger).also { runningFlow = it }
             scope.launch {
                 startVolumeTradeCase(tradeConfig)
                 runningFlow = null
@@ -231,10 +234,7 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
 
     private fun showStatistic(account: CredentialAccount) {
         buildClient(account) { client ->
-            val showStatsCase = ShowStatsCase(client, logger).also {
-                runningFlow = it
-            }
-
+            val showStatsCase = ShowStatsCase(client, logger).also { runningFlow = it }
             scope.launch {
                 showStatsCase()
                 runningFlow = null
@@ -244,21 +244,18 @@ class UserSession(private val bot: Bot, private val chat: Chat, private val onFi
     }
 
     private fun onError(ex: Throwable) {
-        sendMessage("Произошла ошибка: ${ex.message})")
+        sendMessage("${localizationManager.getString(StringKey.ERROR_MESSAGE)} ${ex.message}")
         restart()
     }
 
     private fun restart() {
-        sendMessage(buildString {
-            appendLine("Возникли проблемы, проверьте введенные данные!")
-            appendLine("Давай попробуем еще раз.")
-        })
+        sendMessage(localizationManager.getString(StringKey.INPUT_ERROR_MESSAGE))
         onStart()
     }
 
     private fun exit() {
         resetUserData()
-        sendMessage("Спасибо за использование! До свидания!")
+        sendMessage(localizationManager.getString(StringKey.FINAL_MESSAGE))
         onFinish(chat)
     }
 

@@ -13,7 +13,6 @@ version = "1"
 
 repositories {
     mavenCentral()
-    gradlePluginPortal()
     maven { url = uri("https://jitpack.io") }
 }
 
@@ -46,15 +45,27 @@ dependencies {
     implementation("io.github.kotlin-telegram-bot.kotlin-telegram-bot:telegram:6.2.0")
 }
 
-tasks.test {
-    useJUnitPlatform()
-}
-
 kotlin {
     jvmToolchain(17)
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir("build/generated/strings")
+        }
+    }
 }
 
 tasks.shadowJar {
     archiveClassifier.set("all")
 }
 
+tasks.register<GenerateStringsTask>("generateStrings") {
+    group = "build"
+    description = "Validates string files and generates Strings.kt with string identifiers."
+}
+
+tasks.named("compileKotlin") {
+    dependsOn("generateStrings")
+}

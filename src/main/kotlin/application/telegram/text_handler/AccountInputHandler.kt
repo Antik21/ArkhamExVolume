@@ -3,17 +3,19 @@ package application.telegram.text_handler
 import com.antik.utils.user.CredentialAccount
 import com.github.kotlintelegrambot.Bot
 import com.github.kotlintelegrambot.entities.ChatId
+import generated.StringKey
+import localization.LocalizationManager
 import user.parseAccount
 
-class AccountInputHandler(private val bot: Bot, private val chatId: ChatId) : InputTextHandler<CredentialAccount> {
+class AccountInputHandler(private val bot: Bot, private val chatId: ChatId, private val localizationManager: LocalizationManager) : InputTextHandler<CredentialAccount> {
     private var account: CredentialAccount? = null
 
     override fun getStartMessage(): String {
-        return "Введите данные аккаунта в формате: `accountId:apiKey:apiSecretKey (+опционально):proxyIp:proxyPort:proxyLogin:proxyPassword`"
+        return localizationManager.getString(StringKey.ACCOUNT_START_MESSAGE)
     }
 
     override fun getCompleteMessage(): String {
-        return "Данные аккаунта успешно сохранены!"
+        return localizationManager.getString(StringKey.ACCOUNT_FINAL_MESSAGE)
     }
 
     override fun handleInput(input: String) {
@@ -24,7 +26,7 @@ class AccountInputHandler(private val bot: Bot, private val chatId: ChatId) : In
             .onFailure {
                 bot.sendMessage(
                     chatId = chatId,
-                    text = "Неверный формат данных аккаунта. Попробуйте снова."
+                    text = localizationManager.getString(StringKey.ACCOUNT_WRONG_DATA)
                 )
             }
     }

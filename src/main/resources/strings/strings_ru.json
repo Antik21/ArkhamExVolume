@@ -1,0 +1,34 @@
+{
+  "welcome_message": "Привет, %s!",
+  "unknown_command": "Неизвестная команда. Начните с /start.",
+  "execute_again_message": "Для повторного запуска используйте команду /start.",
+  "error_message": "Произошла ошибка:",
+
+  "menu_title": "Выберите операцию:",
+  "menu_action_balance": "Баланс",
+  "menu_action_trade": "Торговля",
+  "menu_action_stats": "Статистика",
+  "menu_action_exit": "Выход",
+
+  "account_start_message": "Введите данные аккаунта в формате: `accountId:apiKey:apiSecretKey (+опционально):proxyIp:proxyPort:proxyLogin:proxyPassword`",
+  "account_final_message": "Данные аккаунта успешно сохранены!",
+  "account_wrong_data": "Неверный формат данных аккаунта. Попробуйте снова.",
+
+  "input_error_message": "Возникли проблемы, проверьте введенные данные!\nДавай попробуем еще раз.",
+  "final_message": "Спасибо за использование! До свидания!",
+
+  "trade_config_title": "Укажите конфигурацию для трейдинга.",
+  "trade_supported_tokens": "Поддерживаемые монеты: %s",
+  "trade_config_tokens": "Введите список монет для торговли через запятую (например: BTC, ETH):",
+  "trade_config_leverage": "Введите торговое плечо (1 для Спота, 2-10 для Perp торговли, по умолчанию: 1)",
+  "trade_config_wait_before_sell": "Введите время ожидания перед продажей (в секундах, по умолчанию: 10):",
+  "trade_config_wait_between_cycles": "Введите время ожидания между циклами (в секундах, по умолчанию: 30):",
+  "trade_config_time_range": "Введите диапазон в секундах для случайных интервалов (по умолчанию: 5):",
+  "trade_config_max_volume": "Введите максимальный объем (в USD, по умолчанию: 1000):",
+  "trade_config_min_balance_usd": "Введите минимальный баланс (в USD, по умолчанию: 50):",
+  "trade_config_complete": "Все данные уже заполнены.",
+  "trade_config_created": "Конфигурация успешно создана!",
+  "trade_config_invalid_tokens": "Некорректные данные. Используется BTC по умолчанию.",
+  "trade_stop_hint": "Для остановки торговли используйте команду /stop.",
+  "trade_is_active_warning": "Процесс торговли уже запущен."
+}

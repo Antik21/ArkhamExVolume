@@ -1,0 +1,34 @@
+{
+  "welcome_message": "Hello, %s!",
+  "unknown_command": "Unknown command. Start with /start.",
+  "execute_again_message": "To restart, use the /start command.",
+  "error_message": "An error occurred:",
+
+  "menu_title": "Select an operation:",
+  "menu_action_balance": "Balance",
+  "menu_action_trade": "Trade",
+  "menu_action_stats": "Statistics",
+  "menu_action_exit": "Exit",
+
+  "account_start_message": "Enter account details in the format: `accountId:apiKey:apiSecretKey (+optional):proxyIp:proxyPort:proxyLogin:proxyPassword`",
+  "account_final_message": "Account details saved successfully!",
+  "account_wrong_data": "Invalid account data format. Please try again.",
+
+  "input_error_message": "There was an issue, please check your input!\nLet's try again.",
+  "final_message": "Thank you for using! Goodbye!",
+
+  "trade_config_title": "Specify trading configuration.",
+  "trade_supported_tokens": "Supported tokens: %s",
+  "trade_config_tokens": "Enter the list of tokens for trading, separated by commas (e.g., BTC, ETH):",
+  "trade_config_leverage": "Enter leverage (1 for Spot, 2-10 for Perp trading, default: 1):",
+  "trade_config_wait_before_sell": "Enter waiting time before selling (in seconds, default: 10):",
+  "trade_config_wait_between_cycles": "Enter waiting time between cycles (in seconds, default: 30):",
+  "trade_config_time_range": "Enter time range in seconds for random intervals (default: 5):",
+  "trade_config_max_volume": "Enter the maximum volume (in USD, default: 1000):",
+  "trade_config_min_balance_usd": "Enter the minimum balance (in USD, default: 50):",
+  "trade_config_complete": "All data is already filled in.",
+  "trade_config_created": "Configuration created successfully!",
+  "trade_config_invalid_tokens": "Invalid data. BTC is used by default.",
+  "trade_stop_hint": "To stop trading, use the /stop command.",
+  "trade_is_active_warning": "Trading process is already active."
+}
